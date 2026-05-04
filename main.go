@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -253,24 +254,34 @@ func handlerHapus(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dsn := "host=localhost user=postgres password=test162534 dbname=expense_tracker port=5432"
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		dsn = "host=localhost user=postgres password=test162534 dbname=expense_tracker port=5432 sslmode=disable"
+	}
+
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	if err != nil {
 		fmt.Println("Gagal konek ke database", err)
 		return
 	}
+
+	db.AutoMigrate(&data{})
+
 	http.HandleFunc("/tambah", handlerInput)
 	http.HandleFunc("/pengeluaran", handlerPengeluaran)
 	http.HandleFunc("/total", handlerTotal)
 	http.HandleFunc("/filter", handlerFilter)
 	http.HandleFunc("/update", handlerUpdate)
 	http.HandleFunc("/hapus", handlerHapus)
-	db.AutoMigrate(&data{})
 
-	fmt.Println("Server jalan di http://localhost:8080")
-	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Println("Server jalan di port", port)
+	if err := http.ListenAndServe("0.0.0.0:"+port, nil); err != nil {
 		fmt.Println("Server error:", err)
 	}
 }
