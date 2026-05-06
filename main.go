@@ -8,6 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	_ "expense-api/docs" // <-- GANTI "expense-api" sesuai module name di go.mod kamu
+
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,6 +22,10 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+type ResponPesan struct {
+	Pesan string `json:"pesan"`
+}
+
 func sendError(w http.ResponseWriter, message string, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -25,10 +33,10 @@ func sendError(w http.ResponseWriter, message string, statusCode int) {
 }
 
 type Input struct {
-	Jumlah    float64 `json:"jumlah"`
-	Deskripsi string  `json:"deskripsi"`
-	Kategori  string  `json:"kategori"`
-	Tanggal   string  `json:"tanggal"`
+	Jumlah    float64 `json:"jumlah" example:"50000"`
+	Deskripsi string  `json:"deskripsi" example:"Makan siang"`
+	Kategori  string  `json:"kategori" example:"makanan"`
+	Tanggal   string  `json:"tanggal" example:"2025-01-15"`
 }
 type data struct {
 	gorm.Model
@@ -39,17 +47,29 @@ type data struct {
 }
 
 type getData struct {
-	ID        int       `json:"id"`
-	Jumlah    float64   `json:"jumlah"`
-	Deskripsi string    `json:"deskripsi"`
-	Kategori  string    `json:"kategori"`
+	ID        int       `json:"id" example:"1"`
+	Jumlah    float64   `json:"jumlah" example:"50000"`
+	Deskripsi string    `json:"deskripsi" example:"Makan siang"`
+	Kategori  string    `json:"kategori" example:"makanan"`
 	Tanggal   time.Time `json:"tanggal"`
 }
 
 type Total struct {
-	Total float64 `json:"total"`
+	Total float64 `json:"total" example:"250000"`
 }
 
+// handlerInput godoc
+// @Summary      Tambah pengeluaran baru
+// @Description  Menambahkan data pengeluaran baru ke database
+// @Description  Format tanggal harus YYYY-MM-DD
+// @Tags         Pengeluaran
+// @Accept       json
+// @Produce      json
+// @Param        request  body      Input        true  "Data pengeluaran"
+// @Success      200      {object}  ResponPesan
+// @Failure      400      {object}  ErrorResponse
+// @Failure      405      {object}  ErrorResponse
+// @Router       /tambah [post]
 func handlerInput(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		sendError(w, "method harus POST", 405)
@@ -93,14 +113,20 @@ func handlerInput(w http.ResponseWriter, r *http.Request) {
 		Tanggal:   tanggal,
 	})
 
-	hasil := map[string]any{
-		"pesan": "data berhasil dibuat",
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(hasil)
+	json.NewEncoder(w).Encode(ResponPesan{
+		Pesan: "data berhasil dibuat",
+	})
 }
 
+// handlerPengeluaran godoc
+// @Summary      Lihat semua pengeluaran
+// @Description  Menampilkan seluruh data pengeluaran dari database
+// @Tags         Pengeluaran
+// @Produce      json
+// @Success      200  {array}   getData
+// @Failure      400  {object}  ErrorResponse
+// @Router       /pengeluaran [get]
 func handlerPengeluaran(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		sendError(w, "method harus GET", 400)
@@ -124,6 +150,14 @@ func handlerPengeluaran(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(hasil)
 }
 
+// handlerTotal godoc
+// @Summary      Lihat total pengeluaran
+// @Description  Menghitung dan menampilkan total seluruh pengeluaran
+// @Tags         Pengeluaran
+// @Produce      json
+// @Success      200  {object}  Total
+// @Failure      405  {object}  ErrorResponse
+// @Router       /total [get]
 func handlerTotal(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		sendError(w, "method harus GET", 405)
@@ -138,6 +172,17 @@ func handlerTotal(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(temp)
 }
 
+// handlerFilter godoc
+// @Summary      Filter pengeluaran berdasarkan tanggal
+// @Description  Menampilkan pengeluaran dalam rentang tanggal tertentu
+// @Description  Format tanggal: YYYY-MM-DD
+// @Tags         Pengeluaran
+// @Produce      json
+// @Param        dari    query   string  true  "Tanggal awal (YYYY-MM-DD)"
+// @Param        sampai  query   string  true  "Tanggal akhir (YYYY-MM-DD)"
+// @Success      200     {array}   getData
+// @Failure      405     {object}  ErrorResponse
+// @Router       /filter [get]
 func handlerFilter(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		sendError(w, "method harus GET", 405)
@@ -165,6 +210,19 @@ func handlerFilter(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(hasil)
 }
 
+// handlerUpdate godoc
+// @Summary      Update pengeluaran berdasarkan ID
+// @Description  Mengubah data pengeluaran yang sudah ada
+// @Description  Format tanggal harus YYYY-MM-DD
+// @Tags         Pengeluaran
+// @Accept       json
+// @Produce      json
+// @Param        id       query   int    true  "ID pengeluaran"
+// @Param        request  body    Input  true  "Data pengeluaran baru"
+// @Success      200      {object}  ResponPesan
+// @Failure      400      {object}  ErrorResponse
+// @Failure      405      {object}  ErrorResponse
+// @Router       /update [put]
 func handlerUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
 		sendError(w, "method harus PUT", 405)
@@ -218,14 +276,23 @@ func handlerUpdate(w http.ResponseWriter, r *http.Request) {
 		"kategori":  input.Kategori,
 		"tanggal":   tanggal,
 	})
-	hasil := map[string]any{
-		"pesan": "data berhasil diupdate",
-	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(hasil)
+	json.NewEncoder(w).Encode(ResponPesan{
+		Pesan: "data berhasil diupdate",
+	})
 }
 
+// handlerHapus godoc
+// @Summary      Hapus pengeluaran berdasarkan ID
+// @Description  Menghapus data pengeluaran dari database
+// @Tags         Pengeluaran
+// @Produce      json
+// @Param        id  query  int  true  "ID pengeluaran"
+// @Success      200  {object}  ResponPesan
+// @Failure      400  {object}  ErrorResponse
+// @Failure      405  {object}  ErrorResponse
+// @Router       /hapus [delete]
 func handlerHapus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
 		sendError(w, "method harus DELETE", 405)
@@ -245,13 +312,24 @@ func handlerHapus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.Delete(&data{}, id)
-	hasil := map[string]any{
-		"pesan": "data berhasil dihapus",
-	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(hasil)
+	json.NewEncoder(w).Encode(ResponPesan{
+		Pesan: "data berhasil dihapus",
+	})
 }
+
+// @title           Expense API
+// @version         1.0
+// @description     REST API untuk tracking pengeluaran harian
+// @description     Fitur: CRUD pengeluaran, total, filter by tanggal
+
+// @contact.name    Jason
+// @contact.url     https://github.com/Tarquished
+
+// @host            expense-api-production-4f40.up.railway.app
+// @schemes 		https
+// @BasePath        /
 
 func main() {
 	dsn := os.Getenv("DATABASE_URL")
@@ -274,6 +352,7 @@ func main() {
 	http.HandleFunc("/filter", handlerFilter)
 	http.HandleFunc("/update", handlerUpdate)
 	http.HandleFunc("/hapus", handlerHapus)
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

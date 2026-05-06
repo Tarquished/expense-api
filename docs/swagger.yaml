@@ -1,0 +1,228 @@
+basePath: /
+definitions:
+  main.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  main.Input:
+    properties:
+      deskripsi:
+        example: Makan siang
+        type: string
+      jumlah:
+        example: 50000
+        type: number
+      kategori:
+        example: makanan
+        type: string
+      tanggal:
+        example: "2025-01-15"
+        type: string
+    type: object
+  main.ResponPesan:
+    properties:
+      pesan:
+        type: string
+    type: object
+  main.Total:
+    properties:
+      total:
+        example: 250000
+        type: number
+    type: object
+  main.getData:
+    properties:
+      deskripsi:
+        example: Makan siang
+        type: string
+      id:
+        example: 1
+        type: integer
+      jumlah:
+        example: 50000
+        type: number
+      kategori:
+        example: makanan
+        type: string
+      tanggal:
+        type: string
+    type: object
+host: expense-api-production-4f40.up.railway.app
+info:
+  contact:
+    name: Jason
+    url: https://github.com/Tarquished
+  description: |-
+    REST API untuk tracking pengeluaran harian
+    Fitur: CRUD pengeluaran, total, filter by tanggal
+  title: Expense API
+  version: "1.0"
+paths:
+  /filter:
+    get:
+      description: |-
+        Menampilkan pengeluaran dalam rentang tanggal tertentu
+        Format tanggal: YYYY-MM-DD
+      parameters:
+      - description: Tanggal awal (YYYY-MM-DD)
+        in: query
+        name: dari
+        required: true
+        type: string
+      - description: Tanggal akhir (YYYY-MM-DD)
+        in: query
+        name: sampai
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.getData'
+            type: array
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Filter pengeluaran berdasarkan tanggal
+      tags:
+      - Pengeluaran
+  /hapus:
+    delete:
+      description: Menghapus data pengeluaran dari database
+      parameters:
+      - description: ID pengeluaran
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ResponPesan'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Hapus pengeluaran berdasarkan ID
+      tags:
+      - Pengeluaran
+  /pengeluaran:
+    get:
+      description: Menampilkan seluruh data pengeluaran dari database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.getData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Lihat semua pengeluaran
+      tags:
+      - Pengeluaran
+  /tambah:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Menambahkan data pengeluaran baru ke database
+        Format tanggal harus YYYY-MM-DD
+      parameters:
+      - description: Data pengeluaran
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ResponPesan'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Tambah pengeluaran baru
+      tags:
+      - Pengeluaran
+  /total:
+    get:
+      description: Menghitung dan menampilkan total seluruh pengeluaran
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Total'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Lihat total pengeluaran
+      tags:
+      - Pengeluaran
+  /update:
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Mengubah data pengeluaran yang sudah ada
+        Format tanggal harus YYYY-MM-DD
+      parameters:
+      - description: ID pengeluaran
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Data pengeluaran baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ResponPesan'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Update pengeluaran berdasarkan ID
+      tags:
+      - Pengeluaran
+schemes:
+- https
+swagger: "2.0"

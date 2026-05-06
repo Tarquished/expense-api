@@ -1,0 +1,331 @@
+{
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API untuk tracking pengeluaran harian\nFitur: CRUD pengeluaran, total, filter by tanggal",
+        "title": "Expense API",
+        "contact": {
+            "name": "Jason",
+            "url": "https://github.com/Tarquished"
+        },
+        "version": "1.0"
+    },
+    "host": "expense-api-production-4f40.up.railway.app",
+    "basePath": "/",
+    "paths": {
+        "/filter": {
+            "get": {
+                "description": "Menampilkan pengeluaran dalam rentang tanggal tertentu\nFormat tanggal: YYYY-MM-DD",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Filter pengeluaran berdasarkan tanggal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal awal (YYYY-MM-DD)",
+                        "name": "dari",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal akhir (YYYY-MM-DD)",
+                        "name": "sampai",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.getData"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/hapus": {
+            "delete": {
+                "description": "Menghapus data pengeluaran dari database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Hapus pengeluaran berdasarkan ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID pengeluaran",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.ResponPesan"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pengeluaran": {
+            "get": {
+                "description": "Menampilkan seluruh data pengeluaran dari database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Lihat semua pengeluaran",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.getData"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tambah": {
+            "post": {
+                "description": "Menambahkan data pengeluaran baru ke database\nFormat tanggal harus YYYY-MM-DD",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Tambah pengeluaran baru",
+                "parameters": [
+                    {
+                        "description": "Data pengeluaran",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Input"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.ResponPesan"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/total": {
+            "get": {
+                "description": "Menghitung dan menampilkan total seluruh pengeluaran",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Lihat total pengeluaran",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Total"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/update": {
+            "put": {
+                "description": "Mengubah data pengeluaran yang sudah ada\nFormat tanggal harus YYYY-MM-DD",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pengeluaran"
+                ],
+                "summary": "Update pengeluaran berdasarkan ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID pengeluaran",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Data pengeluaran baru",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Input"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.ResponPesan"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Input": {
+            "type": "object",
+            "properties": {
+                "deskripsi": {
+                    "type": "string",
+                    "example": "Makan siang"
+                },
+                "jumlah": {
+                    "type": "number",
+                    "example": 50000
+                },
+                "kategori": {
+                    "type": "string",
+                    "example": "makanan"
+                },
+                "tanggal": {
+                    "type": "string",
+                    "example": "2025-01-15"
+                }
+            }
+        },
+        "main.ResponPesan": {
+            "type": "object",
+            "properties": {
+                "pesan": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Total": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "number",
+                    "example": 250000
+                }
+            }
+        },
+        "main.getData": {
+            "type": "object",
+            "properties": {
+                "deskripsi": {
+                    "type": "string",
+                    "example": "Makan siang"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "jumlah": {
+                    "type": "number",
+                    "example": 50000
+                },
+                "kategori": {
+                    "type": "string",
+                    "example": "makanan"
+                },
+                "tanggal": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
